@@ -16,7 +16,9 @@ return new class extends Migration
             return;
         }
 
-        Schema::create($shortLinksTable, function (Blueprint $table): void {
+        $driver = Schema::getConnection()->getDriverName();
+
+        Schema::create($shortLinksTable, function (Blueprint $table) use ($driver): void {
             $table->uuid('id')->primary();
             $table->string('codigo', 64)->unique();
             $table->text('url_destino');
@@ -28,6 +30,12 @@ return new class extends Migration
             $table->integer('total_clicks')->default(0);
             $table->text('qr_storage_url')->nullable();
             $table->timestampTz('creado_en')->useCurrent();
+
+            if ($driver === 'mysql') {
+                $table->uuid('entidad_activa_id')
+                    ->virtualAs('CASE WHEN activo = 1 THEN entidad_id ELSE NULL END')
+                    ->nullable();
+            }
         });
 
         Schema::create($clicksTable, function (Blueprint $table) use ($shortLinksTable): void {
@@ -38,8 +46,6 @@ return new class extends Migration
             $table->text('user_agent')->nullable();
             $table->timestampTz('clicked_en')->useCurrent();
         });
-
-        $driver = Schema::getConnection()->getDriverName();
 
         if ($driver === 'pgsql') {
             DB::unprepared("
@@ -52,18 +58,39 @@ return new class extends Migration
                 CREATE INDEX idx_short_link_clicks_link
                     ON {$clicksTable} (short_link_id, clicked_en DESC);
             ");
+        } elseif ($driver === 'sqlite') {
+            Schema::table($shortLinksTable, function (Blueprint $table): void {
+                $table->index('codigo');
+            });
 
-            return;
+            Schema::table($clicksTable, function (Blueprint $table): void {
+                $table->index(['short_link_id', 'clicked_en']);
+            });
+
+            DB::unprepared("
+                CREATE UNIQUE INDEX uq_short_links_entidad_activa 
+                ON {$shortLinksTable} (entidad_tipo, entidad_id) 
+                WHERE activo = 1 AND entidad_tipo IS NOT NULL AND entidad_id IS NOT NULL;
+            ");
+        } elseif ($driver === 'mysql') {
+            Schema::table($shortLinksTable, function (Blueprint $table): void {
+                $table->index('codigo');
+                $table->unique(['entidad_tipo', 'entidad_activa_id'], 'uq_short_links_entidad_activa');
+            });
+
+            Schema::table($clicksTable, function (Blueprint $table): void {
+                $table->index(['short_link_id', 'clicked_en']);
+            });
+        } else {
+            Schema::table($shortLinksTable, function (Blueprint $table): void {
+                $table->index('codigo');
+                $table->index(['entidad_tipo', 'entidad_id']);
+            });
+
+            Schema::table($clicksTable, function (Blueprint $table): void {
+                $table->index(['short_link_id', 'clicked_en']);
+            });
         }
-
-        Schema::table($shortLinksTable, function (Blueprint $table): void {
-            $table->index('codigo');
-            $table->index(['entidad_tipo', 'entidad_id']);
-        });
-
-        Schema::table($clicksTable, function (Blueprint $table): void {
-            $table->index(['short_link_id', 'clicked_en']);
-        });
     }
 
     public function down(): void
@@ -71,12 +98,25 @@ return new class extends Migration
         $shortLinksTable = config('short-links.tables.short_links', 'short_links');
         $clicksTable = config('short-links.tables.short_link_clicks', 'short_link_clicks');
 
-        if (Schema::getConnection()->getDriverName() === 'pgsql') {
-            DB::unprepared('
-                DROP INDEX IF EXISTS idx_short_link_clicks_link;
-                DROP INDEX IF EXISTS uq_short_links_entidad_activa;
-                DROP INDEX IF EXISTS idx_short_links_codigo;
-            ');
+        $driver = Schema::getConnection()->getDriverName();
+
+        if (Schema::hasTable($shortLinksTable)) {
+            if ($driver === 'pgsql') {
+                DB::unprepared('
+                    DROP INDEX IF EXISTS idx_short_link_clicks_link;
+                    DROP INDEX IF EXISTS uq_short_links_entidad_activa;
+                    DROP INDEX IF EXISTS idx_short_links_codigo;
+                ');
+            } elseif ($driver === 'sqlite') {
+                DB::unprepared('
+                    DROP INDEX IF EXISTS uq_short_links_entidad_activa;
+                ');
+            } elseif ($driver === 'mysql') {
+                Schema::table($shortLinksTable, function (Blueprint $table): void {
+                    $table->dropUnique('uq_short_links_entidad_activa');
+                    $table->dropColumn('entidad_activa_id');
+                });
+            }
         }
 
         Schema::dropIfExists($clicksTable);

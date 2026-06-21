@@ -50,6 +50,7 @@ Claves principales en `config/short-links.php`:
 | Clave | Default | Descripción |
 |-------|---------|-------------|
 | `route_prefix` | `l` | Prefijo de rutas públicas |
+| `qr_generator` | `RichardRoman\ShortLinks\Laravel\Qr\EndroidQrGenerator::class` | Clase del generador de QR a resolver desde el contenedor |
 | `throttle` | `120,1` | Rate limit redirect/QR |
 | `cache.ttl` | `3600` | TTL cache de URL resuelta (seg) |
 | `cache.prefix` | `short_link_redirect:` | Prefijo clave cache |

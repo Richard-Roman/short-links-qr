@@ -2,6 +2,12 @@
 
 return [
     'route_prefix' => 'l',
+
+    /**
+     * Concrete QR code generator implementation class.
+     * Must implement \RichardRoman\ShortLinks\Contracts\QrGeneratorInterface.
+     */
+    'qr_generator' => \RichardRoman\ShortLinks\Laravel\Qr\EndroidQrGenerator::class,
     'throttle' => '120,1',
     'cache' => [
         'ttl' => 3600,
