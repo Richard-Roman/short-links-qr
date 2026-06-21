@@ -2,6 +2,34 @@
 
 All notable changes to `richard-roman/short-links-qr` are documented in this file.
 
+## [1.1.1] - 2026-06-21
+
+### Added
+
+- `qr_generator` config key for container-resolved `QrGeneratorInterface` implementations.
+- Database-level unique constraint for one active short link per entity on PostgreSQL, SQLite, and MySQL (virtual column on MySQL).
+- Feature tests: factory production autoload, QR generator binding, active-entity uniqueness.
+
+### Changed
+
+- `ShortLinkFactory` PSR-4 mapping moved from `autoload-dev` to `autoload` for consuming apps in production.
+- Column widening migration (`2026_06_22_*`) uses Laravel Schema `change()` across drivers with idempotent guards (`codigoNeedsWiden` / `codigoNeedsNarrow`).
+- `ShortLinksServiceProvider` resolves QR generator class from `config('short-links.qr_generator')`.
+
+### Fixed
+
+- `QrGeneratorBindingTest` stub aligned to `QrGeneratorInterface::generatePng()`.
+- Alter migration no longer fails on PostgreSQL installations that already widened `codigo` to 64 characters (v1.1.0).
+
+### Notes
+
+- Fresh installs on MySQL/SQLite gain active-entity uniqueness that was previously PostgreSQL-only.
+- Migration `down()` narrowing `codigo` to 10 characters may truncate codes longer than 10 if executed manually.
+
+### Compatibility
+
+- Semver patch release: consumers on `^1.1` can update without behavior change when using default config.
+
 ## [1.1.0] - 2026-06-18
 
 ### Added

@@ -31,13 +31,13 @@
     },
     "autoload": {
         "psr-4": {
-            "RichardRoman\\ShortLinks\\": "src/"
+            "RichardRoman\\ShortLinks\\": "src/",
+            "RichardRoman\\ShortLinks\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "RichardRoman\\ShortLinks\\Tests\\": "tests/",
-            "RichardRoman\\ShortLinks\\Database\\Factories\\": "database/factories/"
+            "RichardRoman\\ShortLinks\\Tests\\": "tests/"
         }
     },
     "extra": {

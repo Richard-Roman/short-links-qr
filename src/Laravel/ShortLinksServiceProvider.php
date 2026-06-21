@@ -36,7 +36,10 @@ class ShortLinksServiceProvider extends ServiceProvider
                 length: (int) config('short-links.generator.length', 8),
             );
         });
-        $this->app->singleton(QrGeneratorInterface::class, EndroidQrGenerator::class);
+        $this->app->singleton(QrGeneratorInterface::class, function ($app): QrGeneratorInterface {
+            $generatorClass = config('short-links.qr_generator', EndroidQrGenerator::class);
+            return $app->make($generatorClass);
+        });
         $this->app->singleton(RedirectCacheInterface::class, IlluminateRedirectCache::class);
 
         $this->app->singleton(ShortLinkRepositoryInterface::class, EloquentShortLinkRepository::class);
