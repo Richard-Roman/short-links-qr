@@ -163,7 +163,7 @@ Requiere `endroid/qr-code` en el proyecto consumidor. Sin la dependencia, `GET /
 
 ## Ejemplo multi-app
 
-App A (IoT-FISI): resolvers `proyecto`, `componente`, `entregable`.  
+App A (app-web): resolvers `producto`, `factura`, `entregable`.  
 App B (blog): resolver `articulo` opcional; links externos solo con `url_destino`.
 
 Misma instalación Composer; distintos resolvers taggeados por host.
