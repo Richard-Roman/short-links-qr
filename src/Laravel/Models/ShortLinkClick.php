@@ -7,7 +7,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ShortLinkClick extends Model
 {
-    protected $table = 'short_link_clicks';
+    public function getTable(): string
+    {
+        return (string) config('short-links.tables.short_link_clicks', 'short_link_clicks');
+    }
 
     public $timestamps = false;
 

@@ -13,7 +13,10 @@ class ShortLink extends Model
     /** @use HasFactory<ShortLinkFactory> */
     use HasFactory, HasUuids;
 
-    protected $table = 'short_links';
+    public function getTable(): string
+    {
+        return (string) config('short-links.tables.short_links', 'short_links');
+    }
 
     public $timestamps = false;
 

@@ -18,7 +18,7 @@ return new class extends Migration
 
         Schema::create($shortLinksTable, function (Blueprint $table): void {
             $table->uuid('id')->primary();
-            $table->string('codigo', 10)->unique();
+            $table->string('codigo', 64)->unique();
             $table->text('url_destino');
             $table->string('entidad_tipo', 30)->nullable();
             $table->uuid('entidad_id')->nullable();

@@ -30,7 +30,12 @@ class ShortLinksServiceProvider extends ServiceProvider
         $this->app->singleton(ShortLinkMapper::class);
 
         $this->app->singleton(UrlValidatorInterface::class, HttpUrlValidator::class);
-        $this->app->singleton(CodeGeneratorInterface::class, RandomCodeGenerator::class);
+        $this->app->singleton(CodeGeneratorInterface::class, function (): RandomCodeGenerator {
+            return new RandomCodeGenerator(
+                charset: (string) config('short-links.generator.charset', 'abcdefghjkmnpqrstuvwxyz23456789'),
+                length: (int) config('short-links.generator.length', 8),
+            );
+        });
         $this->app->singleton(QrGeneratorInterface::class, EndroidQrGenerator::class);
         $this->app->singleton(RedirectCacheInterface::class, IlluminateRedirectCache::class);
 
@@ -40,7 +45,14 @@ class ShortLinksServiceProvider extends ServiceProvider
             return new EntityResolverRegistry($app->tagged('short-links.entity-resolvers'));
         });
 
-        $this->app->singleton(ShortLinkService::class);
+        $this->app->singleton(ShortLinkService::class, function ($app): ShortLinkService {
+            return new ShortLinkService(
+                repository: $app->make(ShortLinkRepositoryInterface::class),
+                urlValidator: $app->make(UrlValidatorInterface::class),
+                codeGenerator: $app->make(CodeGeneratorInterface::class),
+                routePattern: (string) config('short-links.route_pattern', '[a-hjkmnp-z2-9]{8}'),
+            );
+        });
         $this->app->singleton(RedirectService::class);
         $this->app->singleton(QrService::class);
         $this->app->singleton(RecordClickAction::class);

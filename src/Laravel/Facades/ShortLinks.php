@@ -7,7 +7,7 @@ use RichardRoman\ShortLinks\Core\Services\ShortLinkService;
 use RichardRoman\ShortLinks\Core\ValueObjects\ShortLink;
 
 /**
- * @method static ShortLink create(string $urlDestino, ?string $titulo = null, ?string $entidadTipo = null, ?string $entidadId = null, ?string $creadoPorId = null)
+ * @method static ShortLink create(string $urlDestino, ?string $titulo = null, ?string $entidadTipo = null, ?string $entidadId = null, ?string $creadoPorId = null, ?string $codigo = null)
  * @method static ShortLink|null findByEntity(string $entidadTipo, string $entidadId)
  */
 final class ShortLinks extends Facade

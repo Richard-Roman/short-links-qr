@@ -2,7 +2,7 @@
 
 Paquete Composer de short links + códigos QR para aplicaciones Laravel.
 
-**Versión:** 1.0.0  
+**Versión:** 1.1.0  
 **Requisitos:** PHP ^8.3, Laravel ^11|^12|^13  
 **Repositorio:** [github.com/Richard-Roman/short-links-qr](https://github.com/Richard-Roman/short-links-qr)  
 **Packagist:** [packagist.org/packages/richard-roman/short-links-qr](https://packagist.org/packages/richard-roman/short-links-qr)
@@ -12,7 +12,7 @@ Paquete Composer de short links + códigos QR para aplicaciones Laravel.
 ### Packagist (recomendado)
 
 ```bash
-composer require richard-roman/short-links-qr:^1.0
+composer require richard-roman/short-links-qr:^1.1
 composer require endroid/qr-code:^6.0
 ```
 
@@ -27,7 +27,7 @@ composer require endroid/qr-code:^6.0
         }
     ],
     "require": {
-        "richard-roman/short-links-qr": "^1.0",
+        "richard-roman/short-links-qr": "^1.1",
         "endroid/qr-code": "^6.0"
     }
 }
@@ -53,6 +53,56 @@ Claves principales en `config/short-links.php`:
 | `throttle` | `120,1` | Rate limit redirect/QR |
 | `cache.ttl` | `3600` | TTL cache de URL resuelta (seg) |
 | `cache.prefix` | `short_link_redirect:` | Prefijo clave cache |
+| `generator.length` | `8` | Longitud de códigos auto-generados |
+| `generator.charset` | charset sin ambiguos | Caracteres del generador aleatorio |
+| `route_pattern` | `[a-hjkmnp-z2-9]{8}` | Regex Laravel `where()` + validación de códigos |
+
+Variables de entorno opcionales: `SHORT_LINKS_LENGTH`, `SHORT_LINKS_CHARSET`, `SHORT_LINKS_ROUTE_PATTERN`.
+
+## v1.1.0 — Códigos configurables y manuales
+
+Actualización **semver minor** compatible con v1.0: sin overrides en `.env`, el comportamiento es idéntico a 1.0.0.
+
+### Código manual opcional
+
+```php
+$shortLink = ShortLinks::create(
+    urlDestino: 'https://example.com/recurso',
+    titulo: 'Demo',
+    codigo: 'K7MNP2WX', // normalizado a minúsculas; debe cumplir route_pattern
+);
+```
+
+Si el código no cumple `route_pattern`, se lanza `InvalidCodeFormatException`. Si ya existe, `DuplicateCodeException` sin reintentos aleatorios.
+
+### Personalizar generador y patrón de ruta
+
+```env
+SHORT_LINKS_LENGTH=5
+SHORT_LINKS_CHARSET=abc
+SHORT_LINKS_ROUTE_PATTERN=[abc]{5}
+```
+
+El generador y las rutas públicas MUST usar el mismo `route_pattern`.
+
+### Migración incremental (instalaciones existentes)
+
+Tras `composer update` a `^1.1`, ejecutar:
+
+```bash
+php artisan migrate
+```
+
+Aplica la ampliación de `codigo` a 64 caracteres sin truncar códigos existentes. Instalaciones nuevas ya crean la columna con longitud 64.
+
+### Actualizar desde v1.0
+
+```bash
+composer require richard-roman/short-links-qr:^1.1
+php artisan migrate
+```
+
+Ver [CHANGELOG.md](CHANGELOG.md) para el detalle completo.
 
 ## Uso básico
 
