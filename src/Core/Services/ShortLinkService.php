@@ -77,4 +77,9 @@ final class ShortLinkService
 
         throw CodeGenerationFailedException::maxAttemptsReached(self::MAX_CODE_ATTEMPTS);
     }
+
+    public function findByEntity(string $entidadTipo, string $entidadId): ?ShortLink
+    {
+        return $this->repository->findActiveByEntity($entidadTipo, $entidadId);
+    }
 }
