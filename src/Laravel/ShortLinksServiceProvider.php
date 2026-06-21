@@ -5,17 +5,20 @@ namespace RichardRoman\ShortLinks\Laravel;
 use Illuminate\Support\ServiceProvider;
 use RichardRoman\ShortLinks\Contracts\CodeGeneratorInterface;
 use RichardRoman\ShortLinks\Contracts\EntityResolverRegistryInterface;
+use RichardRoman\ShortLinks\Contracts\QrGeneratorInterface;
 use RichardRoman\ShortLinks\Contracts\RedirectCacheInterface;
 use RichardRoman\ShortLinks\Contracts\ShortLinkRepositoryInterface;
 use RichardRoman\ShortLinks\Contracts\UrlValidatorInterface;
 use RichardRoman\ShortLinks\Core\Generators\RandomCodeGenerator;
 use RichardRoman\ShortLinks\Core\Resolvers\EntityResolverRegistry;
+use RichardRoman\ShortLinks\Core\Services\QrService;
 use RichardRoman\ShortLinks\Core\Services\RedirectService;
 use RichardRoman\ShortLinks\Core\Services\ShortLinkService;
 use RichardRoman\ShortLinks\Core\Validators\HttpUrlValidator;
 use RichardRoman\ShortLinks\Laravel\Actions\RecordClickAction;
 use RichardRoman\ShortLinks\Laravel\Cache\IlluminateRedirectCache;
 use RichardRoman\ShortLinks\Laravel\Mappers\ShortLinkMapper;
+use RichardRoman\ShortLinks\Laravel\Qr\EndroidQrGenerator;
 use RichardRoman\ShortLinks\Laravel\Repositories\EloquentShortLinkRepository;
 
 class ShortLinksServiceProvider extends ServiceProvider
@@ -28,6 +31,7 @@ class ShortLinksServiceProvider extends ServiceProvider
 
         $this->app->singleton(UrlValidatorInterface::class, HttpUrlValidator::class);
         $this->app->singleton(CodeGeneratorInterface::class, RandomCodeGenerator::class);
+        $this->app->singleton(QrGeneratorInterface::class, EndroidQrGenerator::class);
         $this->app->singleton(RedirectCacheInterface::class, IlluminateRedirectCache::class);
 
         $this->app->singleton(ShortLinkRepositoryInterface::class, EloquentShortLinkRepository::class);
@@ -38,6 +42,7 @@ class ShortLinksServiceProvider extends ServiceProvider
 
         $this->app->singleton(ShortLinkService::class);
         $this->app->singleton(RedirectService::class);
+        $this->app->singleton(QrService::class);
         $this->app->singleton(RecordClickAction::class);
     }
 

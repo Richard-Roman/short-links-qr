@@ -2,25 +2,75 @@
 
 Paquete Composer de short links + códigos QR para aplicaciones Laravel.
 
-**Estado:** en desarrollo — Fase 0 bootstrap  
-**Requisitos:** PHP ^8.3  
+**Estado:** Fase 3 — core + adaptador Laravel + QR  
+**Requisitos:** PHP ^8.3, Laravel ^11|^12|^13, PostgreSQL 14+ (adaptador en producción)  
 **Repositorio:** [github.com/Richard-Roman/short-links-qr](https://github.com/Richard-Roman/short-links-qr)
 
-## Instalación (futuro)
+## Instalación
 
 ```bash
 composer require richard-roman/short-links-qr
-```
-
-Para generación de QR, instalar también la dependencia sugerida:
-
-```bash
 composer require endroid/qr-code:^6.0
 ```
 
-## Desarrollo local
+Publicar configuración (opcional):
 
-### Clonar e instalar
+```bash
+php artisan vendor:publish --tag=short-links-config
+```
+
+## Uso básico
+
+### Crear short links (Facade)
+
+```php
+use RichardRoman\ShortLinks\Laravel\Facades\ShortLinks;
+
+$shortLink = ShortLinks::create(
+    urlDestino: 'https://www.youtube.com/watch?v=abc123',
+    titulo: 'Video demo',
+    entidadTipo: 'entregable',
+    entidadId: $entregableId,
+    creadoPorId: auth()->id(),
+);
+
+$existente = ShortLinks::findByEntity('entregable', $entregableId);
+```
+
+### Rutas públicas (auto-registradas)
+
+- `GET /l/{codigo}` → redirect 302 seguro + analytics
+- `GET /l/{codigo}/qr` → PNG 300×300 del short URL
+
+Nombres de ruta: `short-links.redirect`, `short-links.qr`.
+
+### Entity resolvers (host)
+
+Registrar resolvers en el host con tag DI:
+
+```php
+$this->app->tag([
+    App\ShortLinks\Resolvers\ProyectoEntityResolver::class,
+    App\ShortLinks\Resolvers\EntregableEntityResolver::class,
+], 'short-links.entity-resolvers');
+```
+
+Cada resolver implementa `RichardRoman\ShortLinks\Contracts\EntityResolverInterface`.
+
+### Cache de redirect
+
+Configuración en `config/short-links.php`:
+
+```php
+'cache' => [
+    'ttl' => 3600,
+    'prefix' => 'short_link_redirect:',
+],
+```
+
+La cache se invalida al desactivar un link vía `EloquentShortLinkRepository::deactivateByCodigo()`.
+
+## Desarrollo local
 
 ```bash
 git clone https://github.com/Richard-Roman/short-links-qr.git
@@ -32,41 +82,34 @@ composer test
 
 ### Consumir desde `web-iot-fisi` (path repository)
 
-En el `composer.json` del host, añadir el repositorio path (ruta relativa desde la raíz del host):
-
 ```json
 {
     "repositories": [
         {
             "type": "path",
             "url": "../short-links-qr",
-            "options": {
-                "symlink": true
-            }
+            "options": { "symlink": true }
         }
     ],
     "require": {
-        "richard-roman/short-links-qr": "@dev"
+        "richard-roman/short-links-qr": "@dev",
+        "endroid/qr-code": "^6.0"
     }
 }
 ```
-
-Luego:
 
 ```bash
 composer require richard-roman/short-links-qr:@dev
 ```
 
-> Ajusta `"url"` si el paquete vive en otra ruta en tu máquina. Layout recomendado: `Laravel/web-iot-fisi` y `Laravel/short-links-qr` como hermanos.
-
-## Estructura (objetivo)
+## Estructura
 
 ```
 src/Contracts/     ← interfaces
-src/Core/          ← PHP puro (servicios, VOs)
-src/Laravel/       ← adaptador Laravel (ServiceProvider, Eloquent, rutas)
+src/Core/          ← PHP puro (servicios, VOs, validación)
+src/Laravel/       ← Eloquent, rutas, Facade, QR endroid
 tests/Unit/        ← tests sin framework
-tests/Feature/     ← tests Orchestra Testbench (Fase 2+)
+tests/Feature/     ← Orchestra Testbench
 ```
 
 ## Licencia

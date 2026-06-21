@@ -15,6 +15,13 @@ abstract class TestCase extends OrchestraTestCase
         return [ShortLinksServiceProvider::class];
     }
 
+    protected function getPackageAliases($app): array
+    {
+        return [
+            'ShortLinks' => \RichardRoman\ShortLinks\Laravel\Facades\ShortLinks::class,
+        ];
+    }
+
     protected function defineEnvironment($app): void
     {
         $app['config']->set('app.key', 'base64:' . base64_encode(str_repeat('a', 32)));
