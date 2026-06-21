@@ -23,4 +23,16 @@ final class RandomCodeGeneratorTest extends TestCase
             $this->assertMatchesRegularExpression($pattern, $generator->generate());
         }
     }
+
+    public function test_generates_custom_length_and_charset(): void
+    {
+        $generator = new RandomCodeGenerator('abc', 5);
+
+        for ($i = 0; $i < 20; $i++) {
+            $codigo = $generator->generate();
+
+            $this->assertSame(5, strlen($codigo));
+            $this->assertMatchesRegularExpression('/^[abc]{5}$/', $codigo);
+        }
+    }
 }

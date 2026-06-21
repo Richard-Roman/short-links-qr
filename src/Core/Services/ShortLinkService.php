@@ -8,6 +8,7 @@ use RichardRoman\ShortLinks\Contracts\UrlValidatorInterface;
 use RichardRoman\ShortLinks\Core\Data\CreateShortLinkData;
 use RichardRoman\ShortLinks\Core\Exceptions\CodeGenerationFailedException;
 use RichardRoman\ShortLinks\Core\Exceptions\DuplicateCodeException;
+use RichardRoman\ShortLinks\Core\Exceptions\InvalidCodeFormatException;
 use RichardRoman\ShortLinks\Core\Exceptions\InvalidUrlException;
 use RichardRoman\ShortLinks\Core\ValueObjects\ShortLink;
 
@@ -19,6 +20,7 @@ final class ShortLinkService
         private readonly ShortLinkRepositoryInterface $repository,
         private readonly UrlValidatorInterface $urlValidator,
         private readonly CodeGeneratorInterface $codeGenerator,
+        private readonly string $routePattern = '[a-hjkmnp-z2-9]{8}',
     ) {}
 
     public function create(
@@ -27,6 +29,7 @@ final class ShortLinkService
         ?string $entidadTipo = null,
         ?string $entidadId = null,
         ?string $creadoPorId = null,
+        ?string $codigo = null,
     ): ShortLink {
         $urlSegura = $this->urlValidator->validate($urlDestino);
 
@@ -40,6 +43,20 @@ final class ShortLinkService
             if ($existente !== null) {
                 return $existente;
             }
+        }
+
+        if ($codigo !== null) {
+            $codigoNormalizado = strtolower($codigo);
+            $this->assertCodigoMatchesPattern($codigoNormalizado);
+
+            return $this->repository->create(new CreateShortLinkData(
+                codigo: $codigoNormalizado,
+                urlDestino: $urlSegura,
+                titulo: $titulo,
+                entidadTipo: $entidadTipo,
+                entidadId: $entidadId,
+                creadoPorId: $creadoPorId,
+            ));
         }
 
         return $this->persistWithUniqueCodigo(
@@ -59,9 +76,21 @@ final class ShortLinkService
         ?string $creadoPorId,
     ): ShortLink {
         for ($attempt = 1; $attempt <= self::MAX_CODE_ATTEMPTS; $attempt++) {
+            $codigo = $this->codeGenerator->generate();
+
+            try {
+                $this->assertCodigoMatchesPattern($codigo);
+            } catch (InvalidCodeFormatException) {
+                if ($attempt === self::MAX_CODE_ATTEMPTS) {
+                    throw CodeGenerationFailedException::maxAttemptsReached(self::MAX_CODE_ATTEMPTS);
+                }
+
+                continue;
+            }
+
             try {
                 return $this->repository->create(new CreateShortLinkData(
-                    codigo: $this->codeGenerator->generate(),
+                    codigo: $codigo,
                     urlDestino: $urlDestino,
                     titulo: $titulo,
                     entidadTipo: $entidadTipo,
@@ -76,6 +105,13 @@ final class ShortLinkService
         }
 
         throw CodeGenerationFailedException::maxAttemptsReached(self::MAX_CODE_ATTEMPTS);
+    }
+
+    private function assertCodigoMatchesPattern(string $codigo): void
+    {
+        if (! preg_match('#^' . $this->routePattern . '$#', $codigo)) {
+            throw InvalidCodeFormatException::forCodigo($codigo, $this->routePattern);
+        }
     }
 
     public function findByEntity(string $entidadTipo, string $entidadId): ?ShortLink

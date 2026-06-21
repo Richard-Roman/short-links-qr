@@ -6,17 +6,26 @@ use RichardRoman\ShortLinks\Contracts\CodeGeneratorInterface;
 
 final class RandomCodeGenerator implements CodeGeneratorInterface
 {
-    private const string CHARSET = 'abcdefghjkmnpqrstuvwxyz23456789';
+    private readonly string $charset;
 
-    private const int CODE_LENGTH = 8;
+    private readonly int $length;
+
+    public function __construct(
+        string $charset = 'abcdefghjkmnpqrstuvwxyz23456789',
+        int $length = 8,
+    ) {
+        $this->charset = $charset;
+        $this->length = $length;
+    }
 
     public function generate(): string
     {
         $codigo = '';
+        $charsetLength = strlen($this->charset);
 
-        for ($i = 0; $i < self::CODE_LENGTH; $i++) {
+        for ($i = 0; $i < $this->length; $i++) {
             $byte = ord(random_bytes(1));
-            $codigo .= self::CHARSET[$byte % strlen(self::CHARSET)];
+            $codigo .= $this->charset[$byte % $charsetLength];
         }
 
         return $codigo;
