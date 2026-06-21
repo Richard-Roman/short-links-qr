@@ -1,0 +1,43 @@
+{
+    "name": "richard-roman/short-links-qr",
+    "description": "Short links and QR codes for Laravel applications",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Richard Roman"
+        }
+    ],
+    "require": {
+        "php": "^8.3"
+    },
+    "require-dev": {
+        "illuminate/support": "^11.0|^12.0|^13.0",
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "RichardRoman\\ShortLinks\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "RichardRoman\\ShortLinks\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "RichardRoman\\ShortLinks\\Laravel\\ShortLinksServiceProvider"
+            ]
+        }
+    },
+    "suggest": {
+        "endroid/qr-code": "Required for QR code PNG generation (^6.0)"
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
