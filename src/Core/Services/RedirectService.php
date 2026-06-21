@@ -6,6 +6,7 @@ use RichardRoman\ShortLinks\Contracts\EntityResolverRegistryInterface;
 use RichardRoman\ShortLinks\Contracts\RedirectCacheInterface;
 use RichardRoman\ShortLinks\Contracts\ShortLinkRepositoryInterface;
 use RichardRoman\ShortLinks\Contracts\UrlValidatorInterface;
+use RichardRoman\ShortLinks\Core\ValueObjects\ShortLink;
 
 final class RedirectService
 {
@@ -16,18 +17,35 @@ final class RedirectService
         private readonly RedirectCacheInterface $redirectCache,
     ) {}
 
-    public function resolve(string $codigo): ?string
+    public function resolve(string $codigo): ?ShortLink
     {
-        $cachedUrl = $this->redirectCache->get($codigo);
-
-        if ($cachedUrl !== null) {
-            return $this->urlValidator->validate($cachedUrl);
-        }
-
         $shortLink = $this->repository->findActiveByCodigo($codigo);
 
         if ($shortLink === null || ! $shortLink->activo) {
             return null;
+        }
+
+        $cachedUrl = $this->redirectCache->get($codigo);
+
+        if ($cachedUrl !== null) {
+            $validUrl = $this->urlValidator->validate($cachedUrl);
+
+            if ($validUrl === null) {
+                return null;
+            }
+
+            return new ShortLink(
+                id: $shortLink->id,
+                codigo: $shortLink->codigo,
+                urlDestino: $validUrl,
+                entidadTipo: $shortLink->entidadTipo,
+                entidadId: $shortLink->entidadId,
+                titulo: $shortLink->titulo,
+                creadoPorId: $shortLink->creadoPorId,
+                activo: $shortLink->activo,
+                totalClicks: $shortLink->totalClicks,
+                qrStorageUrl: $shortLink->qrStorageUrl,
+            );
         }
 
         $urlDestino = $this->resolveEntityOrStoredUrl($shortLink->entidadTipo, $shortLink->entidadId, $shortLink->urlDestino);
@@ -39,7 +57,18 @@ final class RedirectService
 
         $this->redirectCache->put($codigo, $urlSegura);
 
-        return $urlSegura;
+        return new ShortLink(
+            id: $shortLink->id,
+            codigo: $shortLink->codigo,
+            urlDestino: $urlSegura,
+            entidadTipo: $shortLink->entidadTipo,
+            entidadId: $shortLink->entidadId,
+            titulo: $shortLink->titulo,
+            creadoPorId: $shortLink->creadoPorId,
+            activo: $shortLink->activo,
+            totalClicks: $shortLink->totalClicks,
+            qrStorageUrl: $shortLink->qrStorageUrl,
+        );
     }
 
     public function invalidateCache(string $codigo): void

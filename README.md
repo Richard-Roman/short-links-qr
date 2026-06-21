@@ -205,12 +205,6 @@ tests/Unit/        ← tests sin framework
 tests/Feature/     ← Orchestra Testbench
 ```
 
-## Registro en Packagist
-
-1. Iniciar sesión en [packagist.org](https://packagist.org)
-2. Submit package URL: `https://github.com/Richard-Roman/short-links-qr`
-3. Configurar GitHub webhook (Packagist lo guía al submit)
-
 ## Licencia
 
 MIT — ver [LICENSE](LICENSE).

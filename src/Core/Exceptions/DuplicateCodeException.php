@@ -8,6 +8,6 @@ final class DuplicateCodeException extends RuntimeException
 {
     public static function forCodigo(string $codigo): self
     {
-        return new self("El código '{$codigo}' ya existe.");
+        return new self("The code '{$codigo}' already exists.");
     }
 }

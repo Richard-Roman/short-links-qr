@@ -18,9 +18,11 @@ class ShortLink extends Model
         return (string) config('short-links.tables.short_links', 'short_links');
     }
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     public const CREATED_AT = 'creado_en';
+
+    public const UPDATED_AT = null;
 
     protected $fillable = [
         'codigo',
@@ -39,6 +41,7 @@ class ShortLink extends Model
         return [
             'activo' => 'boolean',
             'total_clicks' => 'integer',
+            'creado_en' => 'datetime',
         ];
     }
 

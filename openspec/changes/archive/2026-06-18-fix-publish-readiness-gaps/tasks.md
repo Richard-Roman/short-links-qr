@@ -78,13 +78,13 @@
 > **Objetivo:** Tag publicado · CI verde.  
 > **Precondición:** Fases 1–4 completas.
 
-- [ ] **5.1 [P]** Commit en repo `short-links-qr`: mensaje tipo `Release v1.1.1: publish-readiness fixes, test and migration hardening`.
-- [ ] **5.2 [P]** Tag anotado `v1.1.1` y push a `Richard-Roman/short-links-qr`.
-- [ ] **5.3 [P]** Verificar CI GitHub Actions verde en tag `v1.1.1` (workflow trigger `v*`).
+- [x] **5.1 [P]** Commit en repo `short-links-qr`: mensaje tipo `Release v1.1.1: publish-readiness fixes, test and migration hardening`.
+- [x] **5.2 [P]** Tag anotado `v1.1.1` y push a `Richard-Roman/short-links-qr`.
+- [x] **5.3 [P]** Verificar CI GitHub Actions verde en tag `v1.1.1` (workflow trigger `v*`).
 
 ### Verificación Fase 5
 
-- [ ] **5.V1 [P]** Smoke: `composer require richard-roman/short-links-qr:^1.1` en app limpia resuelve `v1.1.1`; provider descubierto; `ShortLink::factory()` autoload OK.
+- [x] **5.V1 [P]** Smoke: `composer require richard-roman/short-links-qr:^1.1` en app limpia resuelve `v1.1.1`; provider descubierto; `ShortLink::factory()` autoload OK.
 
 ---
 
@@ -93,17 +93,17 @@
 > **Objetivo:** Host consume v1.1.1 · sin regresión.  
 > **Precondición:** Fase 5 con tag publicado y CI verde.
 
-- [ ] **6.1 [H]** Confirmar `composer.json` host mantiene `"richard-roman/short-links-qr": "^1.1"` (ya aplicado en configurable-custom-short-links).
-- [ ] **6.2 [H]** `composer update richard-roman/short-links-qr` — lock resuelve `v1.1.1`.
-- [ ] **6.3 [H]** `php artisan migrate` — no-op esperado si alter PG ya aplicada; sin error.
-- [ ] **6.4 [H]** Ejecutar **en serie** (sin paralelismo):
+- [x] **6.1 [H]** Confirmar `composer.json` host mantiene `"richard-roman/short-links-qr": "^1.1"` (ya aplicado en configurable-custom-short-links).
+- [x] **6.2 [H]** `composer update richard-roman/short-links-qr` — lock resuelve `v1.1.1`.
+- [x] **6.3 [H]** `php artisan migrate` — no-op esperado si alter PG ya aplicada; sin error.
+- [x] **6.4 [H]** Ejecutar **en serie** (sin paralelismo):
   - `php artisan test tests/Feature/ShortLinks/ShortLinkEntregableTest.php`
   - `php artisan test tests/Feature/Projects/`
 
 ### Verificación Fase 6
 
-- [ ] **6.V1 [H]** `composer show richard-roman/short-links-qr` → `v1.1.1`, ref dist coincide con tag.
-- [ ] **6.V2 [H]** `vendor/richard-roman/short-links-qr` incluye `qr_generator` en config y `getTable()` — sin parches locales.
+- [x] **6.V1 [H]** `composer show richard-roman/short-links-qr` → `v1.1.1`, ref dist coincide con tag.
+- [x] **6.V2 [H]** `vendor/richard-roman/short-links-qr` incluye `qr_generator` en config y `getTable()` — sin parches locales.
 
 ---
 
@@ -120,7 +120,7 @@ Fase 1 (fix QrGeneratorBindingTest)
 
 **No iniciar Fase 6** hasta Fase 5 con CI verde.
 
-**Siguiente acción inmediata:** `/sdd-apply fix-publish-readiness-gaps Fase 5` — tareas **5.1 → 5.3**.
+**Siguiente acción inmediata:** `/sdd-verify fix-publish-readiness-gaps` — validar change completo (Fases 1–6).
 
 ---
 

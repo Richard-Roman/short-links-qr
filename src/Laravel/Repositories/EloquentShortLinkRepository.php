@@ -61,10 +61,12 @@ final class EloquentShortLinkRepository implements ShortLinkRepositoryInterface
     public function incrementClicksAndRecord(ShortLink $shortLink, ClickData $clickData): void
     {
         DB::transaction(function () use ($shortLink, $clickData): void {
-            $model = ShortLinkModel::query()->findOrFail($shortLink->id);
-            $model->increment('total_clicks');
+            ShortLinkModel::query()
+                ->where('id', $shortLink->id)
+                ->increment('total_clicks');
 
-            $model->clicks()->create([
+            \RichardRoman\ShortLinks\Laravel\Models\ShortLinkClick::query()->create([
+                'short_link_id' => $shortLink->id,
                 'ip_hash' => $clickData->ipHash,
                 'referrer' => $clickData->referrer,
                 'user_agent' => $clickData->userAgent,

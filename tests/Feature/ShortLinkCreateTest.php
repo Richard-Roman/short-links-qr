@@ -79,4 +79,15 @@ final class ShortLinkCreateTest extends TestCase
             'activo' => true,
         ]);
     }
+
+    public function test_timestamps_are_carbon_instances(): void
+    {
+        $shortLinkDto = $this->app->make(ShortLinkService::class)->create(
+            'https://example.com/carbon',
+        );
+
+        $model = ShortLink::query()->find($shortLinkDto->id);
+
+        $this->assertInstanceOf(\Carbon\CarbonInterface::class, $model->creado_en);
+    }
 }

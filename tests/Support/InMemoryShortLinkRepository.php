@@ -114,6 +114,30 @@ final class InMemoryShortLinkRepository implements ShortLinkRepositoryInterface
         $this->seed($updated);
     }
 
+    public function deactivateByCodigo(string $codigo): void
+    {
+        if (! isset($this->byCodigo[$codigo])) {
+            return;
+        }
+
+        $existing = $this->byCodigo[$codigo];
+
+        $deactivated = new ShortLink(
+            id: $existing->id,
+            codigo: $existing->codigo,
+            urlDestino: $existing->urlDestino,
+            entidadTipo: $existing->entidadTipo,
+            entidadId: $existing->entidadId,
+            titulo: $existing->titulo,
+            creadoPorId: $existing->creadoPorId,
+            activo: false,
+            totalClicks: $existing->totalClicks,
+            qrStorageUrl: $existing->qrStorageUrl,
+        );
+
+        $this->byCodigo[$codigo] = $deactivated;
+    }
+
     private function shouldRejectCodigo(string $codigo): bool
     {
         if ($this->duplicateCodigos === []) {

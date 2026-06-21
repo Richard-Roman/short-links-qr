@@ -17,4 +17,6 @@ interface ShortLinkRepositoryInterface
     public function create(CreateShortLinkData $data): ShortLink;
 
     public function incrementClicksAndRecord(ShortLink $shortLink, ClickData $clickData): void;
+
+    public function deactivateByCodigo(string $codigo): void;
 }

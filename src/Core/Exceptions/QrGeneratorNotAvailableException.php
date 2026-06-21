@@ -8,6 +8,6 @@ final class QrGeneratorNotAvailableException extends RuntimeException
 {
     public static function missingDependency(): self
     {
-        return new self('El generador QR no está disponible. Instale endroid/qr-code.');
+        return new self('QR generator is not available. Install endroid/qr-code via composer require endroid/qr-code.');
     }
 }

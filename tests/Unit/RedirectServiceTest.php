@@ -33,8 +33,10 @@ final class RedirectServiceTest extends TestCase
         $first = $service->resolve('cached01');
         $second = $service->resolve('cached01');
 
-        $this->assertSame('https://example.com/cached', $first);
-        $this->assertSame($first, $second);
+        $this->assertInstanceOf(ShortLink::class, $first);
+        $this->assertSame('https://example.com/cached', $first->urlDestino);
+        $this->assertInstanceOf(ShortLink::class, $second);
+        $this->assertSame($first->urlDestino, $second->urlDestino);
         $this->assertSame('https://example.com/cached', $cache->get('cached01'));
     }
 
@@ -58,10 +60,10 @@ final class RedirectServiceTest extends TestCase
             redirectCache: new InMemoryRedirectCache(),
         );
 
-        $this->assertSame(
-            'https://example.com/public/proyecto/proj-1',
-            $service->resolve('entity01'),
-        );
+        $result = $service->resolve('entity01');
+
+        $this->assertInstanceOf(ShortLink::class, $result);
+        $this->assertSame('https://example.com/public/proyecto/proj-1', $result->urlDestino);
     }
 
     public function test_falls_back_to_stored_url_when_resolver_returns_null(): void
@@ -84,7 +86,10 @@ final class RedirectServiceTest extends TestCase
             redirectCache: new InMemoryRedirectCache(),
         );
 
-        $this->assertSame('https://example.com/fallback', $service->resolve('fallback'));
+        $result = $service->resolve('fallback');
+
+        $this->assertInstanceOf(ShortLink::class, $result);
+        $this->assertSame('https://example.com/fallback', $result->urlDestino);
     }
 
     public function test_returns_null_for_inactive_link(): void

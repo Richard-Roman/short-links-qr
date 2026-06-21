@@ -72,4 +72,23 @@ final class ShortLinkRedirectTest extends TestCase
         $this->assertNotNull($click?->ip_hash);
         $this->assertSame(64, strlen((string) $click->ip_hash));
     }
+
+    public function test_redirect_executes_only_one_select_query(): void
+    {
+        $shortLink = ShortLink::factory()->create([
+            'codigo' => 'qrstuv24',
+            'url_destino' => 'https://example.com/1query',
+        ]);
+
+        \Illuminate\Support\Facades\DB::enableQueryLog();
+
+        $this->get('/l/' . $shortLink->codigo)->assertRedirect();
+
+        $queries = \Illuminate\Support\Facades\DB::getQueryLog();
+        $selects = array_filter($queries, fn ($q) => stripos(trim($q['query']), 'select') === 0);
+
+        $this->assertCount(1, $selects, 'El redirect debe ejecutar exactamente un SELECT');
+        
+        \Illuminate\Support\Facades\DB::disableQueryLog();
+    }
 }

@@ -8,6 +8,6 @@ final class InvalidCodeFormatException extends InvalidArgumentException
 {
     public static function forCodigo(string $codigo, string $pattern): self
     {
-        return new self("El código '{$codigo}' no cumple con el formato requerido: {$pattern}.");
+        return new self("The code '{$codigo}' does not match the required format.");
     }
 }

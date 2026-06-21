@@ -2,6 +2,21 @@
 
 All notable changes to `richard-roman/short-links-qr` are documented in this file.
 
+## [1.1.2] - 2026-06-21
+
+### Fixed
+
+- Changed `$timestamps = true` with custom constants on `ShortLink` and `ShortLinkClick` models to fix timestamp hydration on `create()`.
+- Added `datetime` casts to `creado_en` and `clicked_en` to return Carbon instances.
+- Refactored `RedirectService` and `RedirectController` to eliminate double SELECT queries during redirection.
+- `deactivateByCodigo` method added to `ShortLinkRepositoryInterface` for LSP compliance.
+- All exception messages translated to English for public package readiness.
+- Removed internal packagist documentation from `README.md`.
+
+### Changed
+
+- `endroid/qr-code` moved from `require-dev` to `require` to ensure default QR generation works out-of-the-box in production.
+
 ## [1.1.1] - 2026-06-21
 
 ### Added

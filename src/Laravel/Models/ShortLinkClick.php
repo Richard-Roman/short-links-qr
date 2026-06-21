@@ -12,9 +12,11 @@ class ShortLinkClick extends Model
         return (string) config('short-links.tables.short_link_clicks', 'short_link_clicks');
     }
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     public const CREATED_AT = 'clicked_en';
+
+    public const UPDATED_AT = null;
 
     protected $fillable = [
         'short_link_id',
@@ -22,6 +24,13 @@ class ShortLinkClick extends Model
         'referrer',
         'user_agent',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'clicked_en' => 'datetime',
+        ];
+    }
 
     public function shortLink(): BelongsTo
     {
