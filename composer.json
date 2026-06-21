@@ -3,6 +3,18 @@
     "description": "Short links and QR codes for Laravel applications",
     "type": "library",
     "license": "MIT",
+    "keywords": [
+        "laravel",
+        "short-links",
+        "qr-code",
+        "redirect",
+        "url-shortener"
+    ],
+    "homepage": "https://github.com/Richard-Roman/short-links-qr",
+    "support": {
+        "issues": "https://github.com/Richard-Roman/short-links-qr/issues",
+        "source": "https://github.com/Richard-Roman/short-links-qr"
+    },
     "authors": [
         {
             "name": "Richard Roman"
