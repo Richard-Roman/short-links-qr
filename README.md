@@ -86,16 +86,6 @@ SHORT_LINKS_ROUTE_PATTERN=[abc]{5}
 
 El generador y las rutas públicas MUST usar el mismo `route_pattern`.
 
-### Migración incremental (instalaciones existentes)
-
-Tras `composer update` a `^1.1`, ejecutar:
-
-```bash
-php artisan migrate
-```
-
-Aplica la ampliación de `codigo` a 64 caracteres sin truncar códigos existentes. Instalaciones nuevas ya crean la columna con longitud 64.
-
 ### Actualizar desde v1.0
 
 ```bash
@@ -199,9 +189,9 @@ composer test
 
 ```
 src/Contracts/     ← interfaces
-src/Core/          ← PHP puro (servicios, VOs, validación)
+src/Core/          ← PHP (servicios, VOs, validación)
 src/Laravel/       ← Eloquent, rutas, Facade, QR endroid
-tests/Unit/        ← tests sin framework
+tests/Unit/        ← tests
 tests/Feature/     ← Orchestra Testbench
 ```
 
