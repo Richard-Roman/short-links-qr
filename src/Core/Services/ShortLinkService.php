@@ -10,7 +10,9 @@ use RichardRoman\ShortLinks\Core\Exceptions\CodeGenerationFailedException;
 use RichardRoman\ShortLinks\Core\Exceptions\DuplicateCodeException;
 use RichardRoman\ShortLinks\Core\Exceptions\InvalidCodeFormatException;
 use RichardRoman\ShortLinks\Core\Exceptions\InvalidUrlException;
+use RichardRoman\ShortLinks\Core\Exceptions\ShortLinkNotFoundException;
 use RichardRoman\ShortLinks\Core\ValueObjects\ShortLink;
+use Illuminate\Support\Facades\DB;
 
 final class ShortLinkService
 {
@@ -117,5 +119,32 @@ final class ShortLinkService
     public function findByEntity(string $entidadTipo, string $entidadId): ?ShortLink
     {
         return $this->repository->findActiveByEntity($entidadTipo, $entidadId);
+    }
+
+    public function deactivate(string $codigo): void
+    {
+        $this->repository->deactivateByCodigo($codigo);
+    }
+
+    public function rotate(string $codigoViejo, ?string $nuevoCodigo = null): ShortLink
+    {
+        $viejo = $this->repository->findActiveByCodigo($codigoViejo);
+
+        if ($viejo === null) {
+            throw ShortLinkNotFoundException::forCodigo($codigoViejo);
+        }
+
+        return DB::transaction(function () use ($viejo, $nuevoCodigo) {
+            $this->deactivate($viejo->codigo);
+
+            return $this->create(
+                urlDestino: $viejo->urlDestino,
+                titulo: $viejo->titulo,
+                entidadTipo: $viejo->entidadTipo,
+                entidadId: $viejo->entidadId,
+                creadoPorId: $viejo->creadoPorId,
+                codigo: $nuevoCodigo,
+            );
+        });
     }
 }

@@ -2,6 +2,26 @@
 
 All notable changes to `richard-roman/short-links-qr` are documented in this file.
 
+## [1.2.0] - 2026-06-25
+
+### Added
+
+- **Async redirect telemetry**: click registration (`INSERT` + counter `INCREMENT`) is now dispatched via `ProcessShortLinkClickJob` to a background queue, eliminating write latency from the redirect HTTP response.
+- **`ShortLinkService::deactivate(string $codigo): void`**: public service-layer method to logically deactivate a short link by code. Delegates to `ShortLinkRepositoryInterface::deactivateByCodigo()`, invalidating the redirect cache automatically.
+- **`ShortLinkService::rotate(string $codigoViejo, ?string $nuevoCodigo = null): ShortLink`**: atomic link rotation wrapped in a `DB::transaction()`. Deactivates the old link and creates a new one cloning all metadata (`urlDestino`, `entidadTipo`, `entidadId`, `titulo`, `creadoPorId`). Throws `ShortLinkNotFoundException` if the old code does not exist or is already inactive.
+- **`ShortLinkNotFoundException`**: new domain exception (`DomainException`) thrown when attempting to rotate a non-existent or inactive link.
+- **`ShortLinks` Facade PHPDoc updated**: `@method` annotations for `deactivate()` and `rotate()` added for full IDE autocompletion support.
+
+### Changed
+
+- `RecordClickAction` no longer performs synchronous DB writes during redirect. It dispatches `ProcessShortLinkClickJob` instead.
+- `InMemoryShortLinkRepository` (test support class) now updates both `$byCodigo` and `$byEntity` indexes on `deactivateByCodigo()`, fixing a stale-entity bug that caused `create()` to incorrectly reuse a just-deactivated link.
+
+### Compatibility
+
+- Semver minor release: no breaking changes. Consumers on `^1.1` can update to `^1.2` without any config or code changes.
+- Requires a configured queue driver (`QUEUE_CONNECTION`) for async click recording. Falls back to sync if `QUEUE_CONNECTION=sync`.
+
 ## [1.1.2] - 2026-06-21
 
 ### Fixed

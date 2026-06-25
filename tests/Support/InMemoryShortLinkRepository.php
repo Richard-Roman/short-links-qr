@@ -136,6 +136,9 @@ final class InMemoryShortLinkRepository implements ShortLinkRepositoryInterface
         );
 
         $this->byCodigo[$codigo] = $deactivated;
+        if ($existing->entidadTipo !== null && $existing->entidadId !== null) {
+            $this->byEntity[$this->entityKey($existing->entidadTipo, $existing->entidadId)] = $deactivated;
+        }
     }
 
     private function shouldRejectCodigo(string $codigo): bool

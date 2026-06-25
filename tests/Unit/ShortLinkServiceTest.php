@@ -12,6 +12,9 @@ use RichardRoman\ShortLinks\Core\Validators\HttpUrlValidator;
 use RichardRoman\ShortLinks\Core\ValueObjects\ShortLink;
 use RichardRoman\ShortLinks\Tests\Support\FixedCodeGenerator;
 use RichardRoman\ShortLinks\Tests\Support\InMemoryShortLinkRepository;
+use RichardRoman\ShortLinks\Core\Exceptions\ShortLinkNotFoundException;
+use Illuminate\Support\Facades\DB;
+use Mockery;
 
 final class ShortLinkServiceTest extends TestCase
 {
@@ -174,5 +177,92 @@ final class ShortLinkServiceTest extends TestCase
         } finally {
             $this->assertSame(1, $repository->getCreateAttempts());
         }
+    }
+
+    public function test_deactivates_short_link(): void
+    {
+        $repository = new InMemoryShortLinkRepository();
+        $repository->seed(new ShortLink(
+            id: 'id1',
+            codigo: 'k7mnp2wx',
+            urlDestino: 'https://example.com/first',
+            activo: true,
+        ));
+
+        $service = new ShortLinkService(
+            repository: $repository,
+            urlValidator: new HttpUrlValidator(),
+            codeGenerator: new FixedCodeGenerator('unused'),
+        );
+
+        // Verifica que esté activo
+        $this->assertNotNull($repository->findActiveByCodigo('k7mnp2wx'));
+
+        // Lo desactiva
+        $service->deactivate('k7mnp2wx');
+
+        // Verifica que ya no se encuentre como activo
+        $this->assertNull($repository->findActiveByCodigo('k7mnp2wx'));
+    }
+
+    public function test_rotate_throws_not_found_exception_for_invalid_code(): void
+    {
+        $service = new ShortLinkService(
+            repository: new InMemoryShortLinkRepository(),
+            urlValidator: new HttpUrlValidator(),
+            codeGenerator: new FixedCodeGenerator('unused'),
+        );
+
+        $this->expectException(ShortLinkNotFoundException::class);
+        $this->expectExceptionMessage('Short link con código no-existe no encontrado o inactivo.');
+
+        $service->rotate('no-existe');
+    }
+
+    public function test_rotates_short_link_successfully(): void
+    {
+        // Setup DB mock to bypass transaction in pure unit test
+        DB::shouldReceive('transaction')
+            ->once()
+            ->andReturnUsing(function ($callback) {
+                return $callback();
+            });
+
+        $repository = new InMemoryShortLinkRepository();
+        $repository->seed(new ShortLink(
+            id: 'id1',
+            codigo: 'mnp234ab',
+            urlDestino: 'https://example.com/target',
+            entidadTipo: 'User',
+            entidadId: '1',
+            titulo: 'My Link',
+            creadoPorId: 'user-1',
+            activo: true,
+        ));
+
+        $service = new ShortLinkService(
+            repository: $repository,
+            urlValidator: new HttpUrlValidator(),
+            codeGenerator: new FixedCodeGenerator('mnp234cd'),
+        );
+
+        $newLink = $service->rotate('mnp234ab');
+
+        $this->assertSame('mnp234cd', $newLink->codigo);
+        $this->assertSame('https://example.com/target', $newLink->urlDestino);
+        $this->assertSame('User', $newLink->entidadTipo);
+        $this->assertSame('1', $newLink->entidadId);
+        $this->assertSame('My Link', $newLink->titulo);
+        $this->assertSame('user-1', $newLink->creadoPorId);
+        $this->assertTrue($newLink->activo);
+
+        $this->assertNull($repository->findActiveByCodigo('mnp234ab'));
+        $this->assertNotNull($repository->findActiveByCodigo('mnp234cd'));
+    }
+
+    protected function tearDown(): void
+    {
+        Mockery::close();
+        parent::tearDown();
     }
 }

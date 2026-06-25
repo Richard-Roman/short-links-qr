@@ -3,23 +3,22 @@
 namespace RichardRoman\ShortLinks\Laravel\Actions;
 
 use Illuminate\Http\Request;
-use RichardRoman\ShortLinks\Contracts\ShortLinkRepositoryInterface;
-use RichardRoman\ShortLinks\Core\Data\ClickData;
 use RichardRoman\ShortLinks\Core\ValueObjects\ShortLink;
+use RichardRoman\ShortLinks\Laravel\Jobs\ProcessShortLinkClickJob;
 
 final class RecordClickAction
 {
-    public function __construct(
-        private readonly ShortLinkRepositoryInterface $repository,
-    ) {}
-
+    /**
+     * Extrae telemetría HTTP y encola la persistencia del click de forma asíncrona.
+     */
     public function execute(ShortLink $shortLink, Request $request): void
     {
-        $this->repository->incrementClicksAndRecord($shortLink, new ClickData(
-            ipHash: hash('sha256', $request->ip() ?? ''),
-            referrer: $this->truncate($request->headers->get('referer')),
-            userAgent: $this->truncate($request->userAgent()),
-        ));
+        ProcessShortLinkClickJob::dispatch(
+            $shortLink,
+            hash('sha256', $request->ip() ?? ''),
+            $this->truncate($request->headers->get('referer')),
+            $this->truncate($request->userAgent())
+        );
     }
 
     private function truncate(?string $value): ?string

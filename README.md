@@ -2,7 +2,7 @@
 
 Paquete Composer de short links + códigos QR para aplicaciones Laravel.
 
-**Versión:** 1.1.0  
+**Versión:** 1.2.0  
 **Requisitos:** PHP ^8.3, Laravel ^11|^12|^13  
 **Repositorio:** [github.com/Richard-Roman/short-links-qr](https://github.com/Richard-Roman/short-links-qr)  
 **Packagist:** [packagist.org/packages/richard-roman/short-links-qr](https://packagist.org/packages/richard-roman/short-links-qr)
@@ -12,7 +12,7 @@ Paquete Composer de short links + códigos QR para aplicaciones Laravel.
 ### Packagist (recomendado)
 
 ```bash
-composer require richard-roman/short-links-qr:^1.1
+composer require richard-roman/short-links-qr:^1.2
 composer require endroid/qr-code:^6.0
 ```
 
@@ -27,7 +27,7 @@ composer require endroid/qr-code:^6.0
         }
     ],
     "require": {
-        "richard-roman/short-links-qr": "^1.1",
+        "richard-roman/short-links-qr": "^1.2",
         "endroid/qr-code": "^6.0"
     }
 }
@@ -86,14 +86,52 @@ SHORT_LINKS_ROUTE_PATTERN=[abc]{5}
 
 El generador y las rutas públicas MUST usar el mismo `route_pattern`.
 
-### Actualizar desde v1.0
+### Actualizar desde v1.1
 
 ```bash
-composer require richard-roman/short-links-qr:^1.1
-php artisan migrate
+composer require richard-roman/short-links-qr:^1.2
 ```
 
-Ver [CHANGELOG.md](CHANGELOG.md) para el detalle completo.
+> No requiere migraciones nuevas. Ver [CHANGELOG.md](CHANGELOG.md) para el detalle completo.
+
+## v1.2.0 — Gestión del ciclo de vida de enlaces
+
+Actualización **semver minor** compatible con v1.1: sin cambios en `.env` ni migraciones.
+
+### Redirección asíncrona
+
+El registro de clicks ya no bloquea el response HTTP. Se despacha en background vía `ProcessShortLinkClickJob`. Requerís un driver de cola configurado:
+
+```env
+QUEUE_CONNECTION=database  # o redis, sqs, etc.
+```
+
+### Desactivar un enlace
+
+```php
+// Marca el link como inactivo e invalida su caché de redirección.
+ShortLinks::deactivate('k7mn2wxp');
+
+// A partir de este momento GET /l/k7mn2wxp retorna 404.
+```
+
+### Rotación atómica de enlace
+
+Desactiva el viejo y crea el nuevo en una única transacción de base de datos.
+Si la creación del nuevo falla, el viejo permanece activo (rollback automático).
+
+```php
+// Rotación con código auto-generado
+$nuevoLink = ShortLinks::rotate('codigo-viejo');
+
+// Rotación con código manual
+$nuevoLink = ShortLinks::rotate('codigo-viejo', 'codigo-nuevo');
+
+// El nuevo link hereda: urlDestino, entidadTipo, entidadId, titulo, creadoPorId
+echo $nuevoLink->codigo; // "codigo-nuevo"
+```
+
+Si el código viejo no existe o está inactivo, lanza `ShortLinkNotFoundException`.
 
 ## Uso básico
 

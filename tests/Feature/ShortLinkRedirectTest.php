@@ -48,6 +48,8 @@ final class ShortLinkRedirectTest extends TestCase
 
     public function test_records_click_with_ip_hash(): void
     {
+        \Illuminate\Support\Facades\Queue::fake();
+
         $shortLink = ShortLink::factory()->create([
             'codigo' => 'qrstuv23',
             'url_destino' => 'https://example.com/tracked',
@@ -56,21 +58,14 @@ final class ShortLinkRedirectTest extends TestCase
 
         $this->get('/l/' . $shortLink->codigo)->assertRedirect();
 
-        $this->assertDatabaseHas('short_links', [
-            'id' => $shortLink->id,
-            'total_clicks' => 1,
-        ]);
+        \Illuminate\Support\Facades\Queue::assertPushed(\RichardRoman\ShortLinks\Laravel\Jobs\ProcessShortLinkClickJob::class, function ($job) use ($shortLink) {
+            return $job->shortLink->id === $shortLink->id
+                && strlen($job->ipHash) === 64;
+        });
 
-        $this->assertDatabaseHas('short_link_clicks', [
+        $this->assertDatabaseMissing('short_link_clicks', [
             'short_link_id' => $shortLink->id,
         ]);
-
-        $click = ShortLinkClick::query()
-            ->where('short_link_id', $shortLink->id)
-            ->first();
-
-        $this->assertNotNull($click?->ip_hash);
-        $this->assertSame(64, strlen((string) $click->ip_hash));
     }
 
     public function test_redirect_executes_only_one_select_query(): void
